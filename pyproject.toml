@@ -9,7 +9,10 @@ dependencies = [
     "numpy>=2.2.5",
     "openai>=1.78.1",
     "pandas>=2.2.3",
+<<<<<<< HEAD
     "scikit-learn>=1.6.1",
+=======
+>>>>>>> ff5e4748cad2fc3adabf7bd6b8e403b608a8c037
     "seaborn>=0.13.2",
     "streamlit>=1.45.1",
 ]
