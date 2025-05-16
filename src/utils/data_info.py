@@ -82,20 +82,18 @@ def plot_missing_values2(df):
     return fig
 
 
-def summarize_dataset(df: pd.DataFrame) -> dict:
+def summarize_dataset(df: pd.DataFrame) -> str:
     """
-    Returns a summary of the dataset as a dictionary (JSON-compatible):
-    - shape (rows, columns)
-    - column names
-    - column types
+    Returns a string summary of the dataset:
+    - Shape (rows, columns)
+    - Column names and data types
     """
-    summary = {
-        "shape": {
-            "rows": df.shape[0],
-            "columns": df.shape[1]
-        },
-        "features": [
-            {"name": col, "dtype": str(df[col].dtype)} for col in df.columns
-        ]
-    }
-    return summary
+    shape_info = f"Dataset shape: {df.shape[0]} rows × {df.shape[1]} columns\n"
+    
+    feature_info = "Columns:\n"
+    for col in df.columns:
+        dtype = str(df[col].dtype)
+        feature_info += f"- {col}: {dtype}\n"
+
+    return shape_info + feature_info
+
