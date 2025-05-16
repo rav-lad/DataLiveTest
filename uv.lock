@@ -371,10 +371,7 @@ dependencies = [
     { name = "numpy" },
     { name = "openai" },
     { name = "pandas" },
-<<<<<<< HEAD
     { name = "scikit-learn" },
-=======
->>>>>>> ff5e4748cad2fc3adabf7bd6b8e403b608a8c037
     { name = "seaborn" },
     { name = "streamlit" },
 ]
@@ -385,10 +382,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.2.5" },
     { name = "openai", specifier = ">=1.78.1" },
     { name = "pandas", specifier = ">=2.2.3" },
-<<<<<<< HEAD
     { name = "scikit-learn", specifier = ">=1.6.1" },
-=======
->>>>>>> ff5e4748cad2fc3adabf7bd6b8e403b608a8c037
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "streamlit", specifier = ">=1.45.1" },
 ]
