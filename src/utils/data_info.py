@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns 
 
 
 def get_first_row(df: pd.DataFrame) -> pd.DataFrame:
