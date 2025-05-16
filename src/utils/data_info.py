@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns 
 
 
 def get_first_row(df: pd.DataFrame) -> pd.DataFrame:
@@ -52,25 +53,31 @@ def get_missing_table(df: pd.DataFrame) -> pd.DataFrame:
     return missing_df
 
 
-def plot_missing_values(df: pd.DataFrame):
-    """
-    Plots a horizontal bar chart of missing value percentages per column.
-    Only displays columns with missing values.
-    Suitable for use with Streamlit (st.pyplot(fig)).
-    """
-    percent_missing = (df.isnull().sum() / len(df)) * 100
-    percent_missing = percent_missing[percent_missing > 0].sort_values(ascending=True)
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
-    if percent_missing.empty:
-        return None  # Let Streamlit handle the fallback
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-    percent_missing.plot(kind="barh", color="red", ax=ax)
-    ax.set_xlabel("Percentage of missing values")
-    ax.set_ylabel("Columns")
-    ax.set_title("Missing Values per Column")
+def plot_missing_values(df):
+    """
+    Génère un graphique des valeurs manquantes avec style épuré
+    """
+    missing = df.isna().mean().sort_values(ascending=False) * 100
+    missing = missing[missing > 0]
+    
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor='none')  
+    ax.set_facecolor('none')  
+    colors = sns.color_palette("Reds_r", len(missing))
+    bars = ax.bar(missing.index, missing.values, color=colors)
+    
+    ax.set_title('Missing Values Distribution', fontsize=14, pad=20, color='black')
+    ax.set_ylabel('Missing (%)', fontsize=12, color='black')
+    ax.tick_params(colors='black')
+    ax.grid(False)
+    plt.xticks(rotation=45, ha='right')
+    for spine in ax.spines.values():
+        spine.set_edgecolor('none')
+    
     plt.tight_layout()
-
     return fig
 
 
