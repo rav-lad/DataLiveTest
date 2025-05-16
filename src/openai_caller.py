@@ -3,6 +3,36 @@ import openai
 client= openai.OpenAI(api_key= "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") 
 
 
+def sanitize_code(gpt_response: str) -> str:
+    """ 
+    Clean GPT output to extract raw python code
+    Remove markdown, fences and comment around the code
+    """
+    cleaned = gpt_response.strip()
+
+    #remove markdown
+    if cleaned.startswith("```"):
+        parts = cleaned.split("```")
+        if len(parts) >= 2:
+            cleaned = parts[1] 
+            #removes 'python' if it exists
+            if cleaned.startswith("python"):
+                cleaned = cleaned[len("python"):].strip()
+
+    return cleaned
+
+def write_code_to_file(code: str, filename: str = "generated_code.py") -> None:
+    """
+    overwrites the given file with sanitized python code.
+    """
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(code)
+        print(f"[✔] Code successfully written to {filename}")
+    except Exception as e:
+        print(f"[✘] Failed to write code to file: {e}")
+
+
 
 def get_python_code_from_gpt(metadata: str, user_request: str) -> str:
     # build the prompt  
@@ -30,9 +60,11 @@ def get_python_code_from_gpt(metadata: str, user_request: str) -> str:
         )
 
         # fetch code from gpt answer
-        reply = response.choices[0].message.content
+        raw_response = response.choices[0].message.content
+        clean_code = sanitize_code(raw_response)
+        write_code_to_file(clean_code)
 
-        return reply.strip()
+        return clean_code
     
     except Exception as e:
         print(f"Error calling OpenAI APi: {e}")
