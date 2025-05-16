@@ -53,7 +53,7 @@ def get_missing_table(df: pd.DataFrame) -> pd.DataFrame:
     return missing_df
 
 
-def plot_missing_values2(df):
+def plot_missing_values(df):
     """
     Génère un graphique des valeurs manquantes avec style épuré
     """
