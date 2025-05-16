@@ -1,6 +1,13 @@
 import openai
+import runpy
+from typing import Tuple, Optional
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+import pandas as pd
 
 client= openai.OpenAI(api_key= "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") 
+
+FILENAME = "generated_script.py"
 
 
 def sanitize_code(gpt_response: str) -> str:
@@ -21,7 +28,7 @@ def sanitize_code(gpt_response: str) -> str:
 
     return cleaned
 
-def write_code_to_file(code: str, filename: str = "generated_code.py") -> None:
+def write_code_to_file(code: str, filename: str = FILENAME) -> None:
     """
     overwrites the given file with sanitized python code.
     """
@@ -70,3 +77,33 @@ def get_python_code_from_gpt(metadata: str, user_request: str) -> str:
         print(f"Error calling OpenAI APi: {e}")
         return "#Error: Unable to generate code at this time"
     
+def run_code_with_df(df: pd.DataFrame, metadata: str, user_request: str, filename: str =FILENAME) -> Tuple[str, Optional[Figure]]:
+    """
+    Executes the GPT-generated script (stored in a file), injecting the user's DataFrame `df`.
+    Returns:
+        - The generated code as a string
+        - The resulting matplotlib Figure object (or None if nothing was plotted)
+    """
+
+    # Step 1: Read the Python code from file (for display/logging)
+    try:
+        with open(filename, "r", encoding="utf-8") as f:
+            code = f.read()
+    except Exception as e:
+        print(f"[⚠️] Error reading code from {filename}: {e}")
+        return "# Error: could not read generated code", None
+
+    # Step 2: Prepare clean matplotlib state before running new code
+    plt.close("all")
+
+    # Step 3: Run the script with `df` injected
+    try:
+        runpy.run_path(filename, init_globals={"df": df})
+    except Exception as e:
+        print(f"[⚠️] Error running {filename}: {e}")
+        return code, None
+
+    # Step 4: Return the last figure (if one was created)
+    figs = [plt.figure(i) for i in plt.get_fignums()]
+    fig = figs[-1] if figs else None
+    return code, fig
