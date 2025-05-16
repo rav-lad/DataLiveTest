@@ -53,27 +53,28 @@ def get_missing_table(df: pd.DataFrame) -> pd.DataFrame:
     return missing_df
 
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-
-def plot_missing_values(df):
+def plot_missing_values2(df):
     """
     Génère un graphique des valeurs manquantes avec style épuré
     """
     missing = df.isna().mean().sort_values(ascending=False) * 100
     missing = missing[missing > 0]
     
-    fig, ax = plt.subplots(figsize=(10, 6), facecolor='none')  
-    ax.set_facecolor('none')  
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor='none')  # Fond transparent
+    ax.set_facecolor('none')  # Fond transparent pour l'axe
+    
+    # Barres rouges
     colors = sns.color_palette("Reds_r", len(missing))
     bars = ax.bar(missing.index, missing.values, color=colors)
     
-    ax.set_title('Missing Values Distribution', fontsize=14, pad=20, color='black')
-    ax.set_ylabel('Missing (%)', fontsize=12, color='black')
-    ax.tick_params(colors='black')
-    ax.grid(False)
+    # Style minimaliste
+    ax.set_title('Missing Values Distribution', fontsize=14, pad=20, color='white')
+    ax.set_ylabel('Missing (%)', fontsize=12, color='white')
+    ax.tick_params(colors='white')
+    ax.grid(False)  # Désactivation de la grille
     plt.xticks(rotation=45, ha='right')
+    
+    # Contour transparent
     for spine in ax.spines.values():
         spine.set_edgecolor('none')
     
