@@ -15,121 +15,170 @@ st.set_page_config(page_title="Clean your data", layout="centered")
 
 # ---------- CSS ----------
 st.markdown("""
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
-        body {
-            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #3a1c71);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-            font-family: 'Space Grotesk', sans-serif;
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
+
+    /* Onglets stylisés */
+    .stTabs [role="tablist"] {
+        gap: .5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: none !important;
+    }
+    [role="tab"] {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        color: rgba(255,255,255,.8) !important;
+        transition: all .3s ease !important;
+        padding: .8rem 1.5rem !important;
+    }
+    [role="tab"]:hover {
+        border-color: rgba(0,230,118,.3) !important;
+        box-shadow: 0 0 12px rgba(0,230,118,.1) !important;
+    }
+    [role="tab"][aria-selected="true"] {
+        color: #00e676 !important;
+        border-bottom: 3px solid #00e676 !important;
+        transform: translateY(-1px);
+        background: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    div[data-baseweb="tab-highlight"] {
+        display: none !important;
+    }
+    [role="tab"]:focus,
+    [role="tab"]:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Glow commun pour big-title, subtitle, et h2 */
+    .big-title,
+    .subtitle,
+    .stApp h2 {
+        text-align: center;
+        color: #ffffff !important;
+        margin: 1rem 0;
+        text-shadow:
+            0 0 6px rgba(0,230,118,0.5),
+            0 0 12px rgba(0,230,118,0.3),
+            0 0 18px rgba(0,230,118,0.15);
+    }
+
+    .big-title {
+        font-size: 4.5rem;
+        font-weight: 700;
+        letter-spacing: -1.5px;
+        line-height: 1.1;
+        transform: perspective(400px) rotateX(5deg);
+    }
+
+    .subtitle {
+        font-size: 1.4rem;
+        color: rgba(224,224,224,0.9) !important;
+        margin: 1.5rem 0 3rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* Animation hover identique */
+    .big-title:hover,
+    .subtitle:hover,
+    .stApp h2:hover {
+        animation: text-glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes text-glow {
+        from {
+            text-shadow:
+                0 0 6px rgba(0,230,118,0.5),
+                0 0 12px rgba(0,230,118,0.3),
+                0 0 18px rgba(0,230,118,0.15);
         }
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        to {
+            text-shadow:
+                0 0 12px rgba(0,230,118,0.6),
+                0 0 18px rgba(0,230,118,0.4),
+                0 0 24px rgba(0,230,118,0.2);
         }
-        .stButton>button {
-            font-size: 1.1rem;
-            padding: 0.8rem 2.5rem;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #00e676 0%, #00bcd4 100%);
-            color: black;
-            border: none;
-            transition: all 0.4s ease;
-        }
-        h1, h2, h3 {
-            color: white;
-            text-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
-        }
-        .stTabs [role="tablist"] > div {
-            font-weight: bold;
-        }
-        .stToggleSwitch label {
-            color: white;
-        }
-        .big-title {
-            font-size: 3.2rem;
-            font-weight: 700;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 0 25px rgba(0, 230, 118, 0.4);
-            margin: 2rem 0;
-        }
-        .big-title:hover {
-            animation: text-glow 1.5s ease-in-out infinite alternate;
-        }
-        @keyframes text-glow {
-            from { text-shadow: 0 0 10px rgba(0, 230, 118, 0.3); }
-            to { text-shadow: 0 0 30px rgba(0, 230, 118, 0.7); }
-        }
-    </style>
+    }
+
+    /* Sous-header (h3) inchangé */
+    .stApp h3 {
+        color: #ffffff !important;
+        text-shadow:
+            0 0 2px #00e676,
+            0 0 4px #00e676 !important;
+    }
+</style>
 """, unsafe_allow_html=True)
 
 # ---------- Vérification de la présence du dataset ----------
 if "df" not in st.session_state or st.session_state.df is None:
-    st.error("❌ No dataset loaded. Please import your data first.")
+    st.error("No dataset loaded. Please import your data first.")
     st.stop()
 
 # ---------- Contenu principal ----------
-df = st.session_state.df.copy()  # On copie pour garder la version originale
+df = st.session_state.df.copy()
 
-st.markdown('<div class="big-title">Clean your dataset</div>', unsafe_allow_html=True)
+# Titre principal
+st.markdown('<div class="big-title">Dataset Preparation</div>', unsafe_allow_html=True)
+# Sous-titre
+st.markdown('<div class="subtitle">Prepare and clean your dataset seamlessly</div>', unsafe_allow_html=True)
 
-st.header("🎲 Sample")
-st.dataframe(df.head(1))  # ✅ Arrow-safe car convert_dtypes + string() déjà faits à l'import
+# Section Sample
+with st.container():
+    st.header("Data Sample")
+    st.dataframe(df.head(3))
 
-description = describe_dataset(df)
-shape = get_shape_dataframe(df)
+# Section General Information
+with st.container():
+    st.header("General Information")
+    tab1, tab2, tab3 = st.tabs(["Description", "Shape", "Missing Values"])
+    with tab1:
+        st.dataframe(describe_dataset(df))
+    with tab2:
+        st.dataframe(get_shape_dataframe(df))
+    with tab3:
+        st.pyplot(fig=plot_missing_values(df))
 
-st.header("📊 General Information")
-tab1, tab2, tab3 = st.tabs(["📄 Description", "📐 Shape", "🩹 Missing Values"])
-with tab1:
-    st.dataframe(description)
-with tab2:
-    st.dataframe(shape)
-with tab3:
-    st.pyplot(fig=plot_missing_values(df))
-
-# ---------- Cleaning options ----------
-st.markdown("### 🧼 Data Cleaning Options")
-
-with st.container(border=True):
-    method = st.radio(
-        "Choose cleaning strategy:",
-        options=[
-            "❌ Remove rows with missing values",
-            "📊 Fill with mean/Unknown",
-            "🤖 Advanced KNN Imputation"
-        ],
-        index=1
-    )
-
-    if "KNN" in method:
-        n_neighbors = st.slider(
-            "Number of neighbors for KNN:",
-            min_value=2,
-            max_value=10,
-            value=5,
-            help="Number of nearest neighbors to use for imputation"
+# Cleaning Options
+with st.container():
+    st.header("Data Cleaning")
+    with st.container(border=True):
+        method = st.radio(
+            "Cleaning Method:",
+            options=[
+                "Remove rows with missing values",
+                "Fill missing values",
+                "KNN Imputation"
+            ],
+            index=1
         )
+        if "KNN" in method:
+            n_neighbors = st.slider(
+                "Number of neighbors for KNN:",
+                min_value=2,
+                max_value=10,
+                value=5,
+                help="Number of nearest neighbors to use for imputation"
+            )
 
-# ---------- Action button ----------
-if st.button("🚀 Clean dataset and start exploring", type="primary"):
-    with st.status("Cleaning data...", expanded=True) as status:
-        try:
-            if "Remove" in method:
-                df = data_cleaning_remove(df)
-            elif "Fill" in method:
-                df = data_cleaning_fill(df)
-            elif "KNN" in method:
-                df = data_cleaning_knn(df, n_neighbors=n_neighbors)
+# Action Button
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    if st.button("Process Dataset", type="primary"):
+        with st.status("Processing data...", expanded=True) as status:
+            try:
+                if "Remove" in method:
+                    df = data_cleaning_remove(df)
+                elif "Fill" in method:
+                    df = data_cleaning_fill(df)
+                elif "KNN" in method:
+                    df = data_cleaning_knn(df, n_neighbors=n_neighbors)
 
-            # Mise à jour du DataFrame nettoyé
-            st.session_state.df = df
-
-            status.update(label="✅ Cleaning complete!", state="complete", expanded=False)
-            st.switch_page("pages/main_page.py")
-
-        except Exception as e:
-            st.error(f"❌ Cleaning failed: {str(e)}")
-            st.stop()
+                st.session_state.df = df
+                status.update(label="Processing complete!", state="complete", expanded=False)
+                st.switch_page("pages/main_page.py")
+            except Exception as e:
+                st.error(f"Processing failed: {str(e)}")
+                st.stop()
