@@ -4,6 +4,7 @@ import io
 from openai import OpenAI
 from src.openai_caller import run_code_with_df, get_python_code_from_gpt
 from src.utils.data_info import summarize_dataset
+from src.model.ui_utils import display_graph
 
 openai_api_key = "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"
 client = OpenAI(api_key=openai_api_key)
@@ -37,15 +38,12 @@ if "df" in st.session_state and st.session_state.df is not None:
         st.session_state["messages"] = [{"role": "assistant","plot":None,"content": "How can I help you?"}]
 
     # Display all message 
-    for msg in st.session_state.messages:
+    for id,msg in enumerate(st.session_state.messages):
         if msg['plot'] is None:
             st.chat_message(msg["role"]).write(msg["content"])
         else:
-            with st.chat_message(msg["role"]):
-                st.write("Here is the plot you request")
-                col1, col2, col3 = st.columns([1, 4, 1])  # middle column is wide
-                with col2:
-                    st.pyplot(fig=msg['plot'])
+            display_graph(msg['plot'],msg["role"],id,msg['content'])
+
     # When user write store it inside prompt
     if prompt := st.chat_input():        
 
@@ -58,45 +56,14 @@ if "df" in st.session_state and st.session_state.df is not None:
         # Get Plot
         generated_code = get_python_code_from_gpt(metadata, user_request=prompt)
         msg,fig = run_code_with_df(df=df,metadata=metadata,user_request=prompt)
-        
+
+        # Display the graph
+        display_graph(fig,"assistant",len(st.session_state.messages),msg)
+
         # Add Result to session chat
         st.session_state.messages.append({"role": "assistant","plot":fig,"content": msg})
         
-        # Display the plot 
-        with st.chat_message("assistant"):
-            st.write("Here is the plot you request")
-            
-            # Col to center the plot
-            col1, col2, col3 = st.columns([1, 4, 1])  # middle column is wide
-            with col2:
-                # Col for save, analyze and code button
-                save_c, ana_c ,code_c = st.columns(3)
-
-                # Save button
-                with save_c:
-                    # Save the plot to a buffer
-                    buf = io.BytesIO()
-                    #fig.savefig(buf, format="png", bbox_inches="tight")
-                    buf.seek(0)
-                    st.download_button(
-                        label="💾 Save",
-                        data=buf,
-                        file_name="plot.png",
-                        mime="image/png",
-                        key="download_button")
-                        
-                # Analyze button
-                with ana_c:
-                    if st.button("🔎 Analyze"):
-                        st.info("Running analysis (simulate).")
-                
-                # Display code button 
-                with code_c:
-                    if st.button(" See code"):
-                        st.info("See code")
-                
-                # Display plot
-                st.pyplot(fig=fig)        
+       
 else:
     st.warning("⚠️ No dataset found. Please upload your data first.")
     if st.button("Go back to upload"):
