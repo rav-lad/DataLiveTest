@@ -30,12 +30,20 @@ if "df" in st.session_state and st.session_state.df is not None:
     
     # Button that clear the chat and the history 
     if st.button("🗑️ Clear Chat", key="clear_chat_button"):
+        # Reset message
         st.session_state["messages"] = [{"role": "assistant","plot":None,"content": "How can I help you?"}]
+        
+        #  Reset context
+        st.session_state["context"] = []
         st.rerun()  # force refresh to remove old messages immediately
     
     # Initialize message history 
     if "messages" not in st.session_state:
+        # Save what to display
         st.session_state["messages"] = [{"role": "assistant","plot":None,"content": "How can I help you?"}]
+        
+        # Save context for LLM
+        st.session_state["context"] = []
 
     # Display all message 
     for id,msg in enumerate(st.session_state.messages):

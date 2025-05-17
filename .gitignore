@@ -2,3 +2,4 @@
 src/generated_script.py
 *.mp4 
 *.png
+*.csv

@@ -10,7 +10,7 @@ client= openai.OpenAI(api_key= "sk-proj-nGeDRonWcqspGfglJ7pUK-23-7y2MjTUd_5qJRiE
 
 FILENAME = "src/generated_script.py"
 
-
+context = ""
 def sanitize_code(gpt_response: str) -> str:
     """ 
     Clean GPT output to extract raw python code
@@ -40,15 +40,21 @@ def write_code_to_file(code: str, filename: str = FILENAME) -> None:
     except Exception as e:
         print(f"[✘] Failed to write code to file: {e}")
 
-def get_starting_prompt(metadata: str, user_request: str) -> str:
+def create_prompt(metadata: str, user_request: str,context:str) -> str:
     """
     Returns the initial prompt for the GPT model based on dataset metadata and user request.
     """
     return f"""
         You are a helpful data analyst. A user uploaded a dataset.
         Here is a description of the dataset:
+        Start of dataset description \n
         {metadata}
-
+        End of dataset description \n
+        Following is the list of your precedent conversation with the user, if it's empty it's the start of the conversation
+        else use it to answer adequatly to the user.
+        Start of context\n
+        {context}
+        End of context\n
         The user asked: "{user_request}"
 
         Please write valid Python code to fulfill the user's request using pandas and matplotlib or seaborn.
@@ -57,39 +63,35 @@ def get_starting_prompt(metadata: str, user_request: str) -> str:
 
 
 
-def get_python_code_from_gpt(metadata: str, user_request: str, context: List[str]) -> str:
+def get_python_code_from_gpt(metadata: str, user_request: str,context:str) -> tuple[str,str]:
     # build the prompt  
 
-    messages = [
-        {"role": "system", "content": "You are a helpful Python coding assistant. Only return executable code using pandas, matplotlib, or seaborn. Assume the DataFrame is called df."}
-    ]
 
-    if not context:
-        starting_prompt= get_starting_prompt(metadata, user_request)
-        messages.append({"role": "user", "content": starting_prompt})
-    else:
-        for msg in context:
-            messages.append({"role": "user", "content": msg})
-        messages.append({"role": "user", "content": user_request})
+    prompt = create_prompt(metadata=metadata,user_request=user_request,context=context)
+
+    context += prompt 
     
     # call the api 
     try: 
         response = client.chat.completions.create(
             model= "gpt-4o-mini",
-            messages =messages,
+            messages = [{"role":"user","content":prompt}],
             temperature=0.2
         )
 
         # fetch code from gpt answer
         raw_response = response.choices[0].message.content
         clean_code = sanitize_code(raw_response)
+
+        # Append Clean code to context 
+        context += f"Your answer : {clean_code}"
         write_code_to_file(clean_code)
 
-        return clean_code
+        return clean_code,context
     
     except Exception as e:
         print(f"Error calling OpenAI APi: {e}")
-        return "#Error: Unable to generate code at this time"
+        return "#Error: Unable to generate code at this time",""
     
 def run_code_with_df(df: pd.DataFrame, metadata: str, user_request: str, filename: str =FILENAME) -> Tuple[str, Optional[Figure]]:
     """
