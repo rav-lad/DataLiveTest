@@ -2,7 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import io
 from openai import OpenAI
-from src.openai_caller import get_python_code_from_gpt
+from src.openai_caller import run_code_with_df, get_python_code_from_gpt
 from src.utils.data_info import summarize_dataset
 
 openai_api_key = "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"
@@ -16,7 +16,8 @@ if "df" in st.session_state and st.session_state.df is not None:
     
     # Fetch dataframe
     df = st.session_state.df
-    #metadata = summarize_dataset()
+    # Get Summary of dataset
+    metadata = summarize_dataset(df=df)
     
     # Preview of the clean dataframe
     st.subheader("🔍 Preview of your cleaned dataset")
@@ -28,31 +29,38 @@ if "df" in st.session_state and st.session_state.df is not None:
     
     # Button that clear the chat and the history 
     if st.button("🗑️ Clear Chat", key="clear_chat_button"):
-        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+        st.session_state["messages"] = [{"role": "assistant","plot":None,"content": "How can I help you?"}]
         st.rerun()  # force refresh to remove old messages immediately
     
     # Initialize message history 
     if "messages" not in st.session_state:
-        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+        st.session_state["messages"] = [{"role": "assistant","plot":None,"content": "How can I help you?"}]
 
     # Display all message 
     for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
-
+        if msg['plot'] is None:
+            st.chat_message(msg["role"]).write(msg["content"])
+        else:
+            with st.chat_message(msg["role"]):
+                st.write("Here is the plot you request")
+                col1, col2, col3 = st.columns([1, 4, 1])  # middle column is wide
+                with col2:
+                    st.pyplot(fig=msg['plot'])
     # When user write store it inside prompt
     if prompt := st.chat_input():        
 
         # Add Prompt to message memory
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role": "user","plot":None,"content": prompt})
         
         # Display user prompt
         st.chat_message("user").write(prompt)
         
         # Get Plot
-        msg = get_python_code_from_gpt(metadata="",user_request=prompt)
+        generated_code = get_python_code_from_gpt(metadata, user_request=prompt)
+        msg,fig = run_code_with_df(df=df,metadata=metadata,user_request=prompt)
         
         # Add Result to session chat
-        st.session_state.messages.append({"role": "assistant", "content": msg})
+        st.session_state.messages.append({"role": "assistant","plot":fig,"content": msg})
         
         # Display the plot 
         with st.chat_message("assistant"):
@@ -61,11 +69,6 @@ if "df" in st.session_state and st.session_state.df is not None:
             # Col to center the plot
             col1, col2, col3 = st.columns([1, 4, 1])  # middle column is wide
             with col2:
-                # Generate fake plot for now
-                fig, ax = plt.subplots(figsize=(5, 3))
-                ax.plot([1, 2, 3], [4, 1, 7])
-                ax.set_title("Example Line Plot")
-
                 # Col for save, analyze and code button
                 save_c, ana_c ,code_c = st.columns(3)
 
@@ -73,7 +76,7 @@ if "df" in st.session_state and st.session_state.df is not None:
                 with save_c:
                     # Save the plot to a buffer
                     buf = io.BytesIO()
-                    fig.savefig(buf, format="png", bbox_inches="tight")
+                    #fig.savefig(buf, format="png", bbox_inches="tight")
                     buf.seek(0)
                     st.download_button(
                         label="💾 Save",

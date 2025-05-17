@@ -7,7 +7,7 @@ import pandas as pd
 
 client= openai.OpenAI(api_key= "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") 
 
-FILENAME = "generated_script.py"
+FILENAME = "src/generated_script.py"
 
 
 def sanitize_code(gpt_response: str) -> str:
@@ -52,7 +52,8 @@ def get_python_code_from_gpt(metadata: str, user_request: str) -> str:
         The user asked: "{user_request}"
 
         Please write valid Python code to fulfill the user's request using pandas and matplotlib or seaborn.
-        Do not include explanations. Only return the code.
+        Do not include explanations. Only return the code. You should not show the plot but return it. 
+        The dataframe is passed as a inits_global under "df" when your code will be run.
         """
     
     # call the api 
