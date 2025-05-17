@@ -1,6 +1,7 @@
 import streamlit as st 
 import io 
 import base64
+from src.utils.analyse import analyse_plot
 
 def display_graph(fig,role,id,code):
         buf = io.BytesIO()
@@ -23,7 +24,7 @@ def display_graph(fig,role,id,code):
             _, col2, _ = st.columns([1, 3, 1])  # middle column is wide
             with col2:
                 # Col for save, analyze and code button
-                _,save_c, ana_c ,code_c,_ = st.columns([1.1,0.9,1.1,1.2,5],)
+                _,save_c, ana_c ,code_c,_ = st.columns([1.1,0.9,1.1,1.4,4.6],)
 
                 # Save button
                 with save_c:
@@ -39,11 +40,20 @@ def display_graph(fig,role,id,code):
                 # Analyze button
                 with ana_c:
                     if st.button("🔎 Analyze",key=f"ana_button{id}"):
-                        st.info("Running analysis (simulate).")
+                        ana_result = analyse_plot(fig)
+                        # Add new assistant message to history
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "plot": None,
+                            "content": ana_result
+                        })
+
+                        st.rerun()
+                                        
                 
                 # Display code button 
                 with code_c:
-                    with st.popover(" See code"):
+                    with st.popover("⌨️ See code"):
                         st.code(code,language="python")
                 
                 # Display plot

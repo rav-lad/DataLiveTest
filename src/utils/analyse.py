@@ -109,6 +109,19 @@ def analyze_video_chart(output_path: str) -> str:
     except Exception:
         return response.text
 
+def analyse_plot(fig): 
+    # Save to file
+    PATH = "src/temp/dummy_plot.png"  # or e.g. "/tmp/myplot.png"
+    OUTPATH = "src/temp/test.mp4"
+    fig.savefig(PATH, format="png", dpi=100, bbox_inches='tight')
+
+
+    print(f"Plot saved to: {PATH}")
+
+    _ = image_to_video(PATH,OUTPATH)
+    analysis = analyze_video_chart(OUTPATH)
+    print(f"{analysis}")
+    return analysis
 
 if __name__ == "__main__":
     # Create a dummy plot

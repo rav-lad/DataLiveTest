@@ -62,7 +62,7 @@ if "df" in st.session_state and st.session_state.df is not None:
         st.chat_message("user").write(prompt)
         
         # Get Plot
-        generated_code = get_python_code_from_gpt(metadata, user_request=prompt)
+        generated_code = get_python_code_from_gpt(metadata, user_request=prompt,context="")
         msg,fig = run_code_with_df(df=df,metadata=metadata,user_request=prompt)
 
         # Display the graph
