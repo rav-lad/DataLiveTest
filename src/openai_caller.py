@@ -80,7 +80,7 @@ def get_python_code_from_gpt(metadata: str, user_request: str,messages: List[Dic
     else:
         user_message = (f"The user asked: \"{user_request}\"\n"
             "Please write valid Python code to fulfill the user's request using pandas and matplotlib or seaborn. "
-            "Do not include explanations. Only return the code.")
+            "Do not include explanations. Only return the code that should work when runned i.e don't forget the import each time")
     
         messages.append({"role": "user", "content": user_message})
 
@@ -102,8 +102,8 @@ def get_python_code_from_gpt(metadata: str, user_request: str,messages: List[Dic
         
         # write the code to a file
         write_code_to_file(clean_code)
-
-        return clean_code,context
+        print_message_history(messages)
+        return clean_code,messages
     
     except Exception as e:
         print(f"Error calling OpenAI APi: {e}")
@@ -139,3 +139,22 @@ def run_code_with_df(df: pd.DataFrame, metadata: str, user_request: str, filenam
     figs = [plt.figure(i) for i in plt.get_fignums()]
     fig = figs[-1] if figs else None
     return code, fig
+
+def print_message_history(messages: List[Dict[str, str]]) -> None:
+    """
+    Nicely prints the list of chat messages with role and truncated content.
+    """
+    print("\n:scroll: Message History:")
+    print("=" * 60)
+    for i, msg in enumerate(messages):
+        role = msg["role"].upper()
+        content_preview = msg["content"].strip()
+
+        # Truncate long messages for readability
+        if len(content_preview) > 500:
+            content_preview = content_preview[:500] + " ... [truncated]"
+
+        print(f"\n[{i+1}] Role: {role}")
+        print("-" * 60)
+        print(content_preview)
+    print("=" * 60 + "\n")
