@@ -1,6 +1,14 @@
 import streamlit as st
-from src.utils.data_info import describe_dataset, get_shape_dataframe, plot_missing_values
-from src.utils.cleaning_data import data_cleaning_fill, data_cleaning_remove, data_cleaning_knn
+from src.utils.data_info_function import (
+    describe_dataset,
+    get_shape_dataframe,
+    plot_missing_values,
+)
+from src.utils.cleaning_data import (
+    data_cleaning_fill,
+    data_cleaning_remove,
+    data_cleaning_knn,
+)
 
 # ---------- Page config ----------
 st.set_page_config(page_title="Clean your data", layout="centered")
@@ -62,13 +70,13 @@ if "df" not in st.session_state or st.session_state.df is None:
     st.error("❌ No dataset loaded. Please import your data first.")
     st.stop()
 
-# ---------- Contenu ----------
-df = st.session_state.df
+# ---------- Contenu principal ----------
+df = st.session_state.df.copy()  # On copie pour garder la version originale
 
 st.markdown('<div class="big-title">Clean your dataset</div>', unsafe_allow_html=True)
 
 st.header("🎲 Sample")
-st.dataframe(df.head(1))
+st.dataframe(df.head(1))  # ✅ Arrow-safe car convert_dtypes + string() déjà faits à l'import
 
 description = describe_dataset(df)
 shape = get_shape_dataframe(df)
@@ -116,7 +124,9 @@ if st.button("🚀 Clean dataset and start exploring", type="primary"):
             elif "KNN" in method:
                 df = data_cleaning_knn(df, n_neighbors=n_neighbors)
 
+            # Mise à jour du DataFrame nettoyé
             st.session_state.df = df
+
             status.update(label="✅ Cleaning complete!", state="complete", expanded=False)
             st.switch_page("pages/main_page.py")
 

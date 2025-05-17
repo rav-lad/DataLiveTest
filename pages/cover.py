@@ -92,5 +92,5 @@ st.markdown('<div class="logo">DATALIVE.AI</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">AI-Powered Insights • Natural Language Queries<br>Auto-Visualization Engine</div>', unsafe_allow_html=True)
 
 # ---------- Bouton centré et stylé ----------
-if st.button("🚀 LAUNCH ANALYTICS", key="launch_btn"):
+if st.button(" LAUNCH ANALYTICS", key="launch_btn"):
     st.switch_page("pages/data_import.py")
