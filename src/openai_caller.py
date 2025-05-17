@@ -6,9 +6,10 @@ from matplotlib.figure import Figure
 import pandas as pd
 from typing import List
 import seaborn as sns
+import os
 
-
-client= openai.OpenAI(api_key= "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") 
+openai_api_key = os.getenv("OPENAI_API_KEY")
+client= openai.OpenAI(api_key= openai_api_key)
 
 FILENAME = "src/generated_script.py"
 
