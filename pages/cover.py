@@ -2,17 +2,15 @@ import streamlit as st
 
 st.set_page_config(page_title="DataLive.AI – Launchpad", layout="centered")
 
-# ---------- CSS amélioré avec animation et effets de profondeur ----------
+# ---------- CSS global ----------
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
-        
-        /* Dégradé animé */
+
         body {
             background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #3a1c71);
             background-size: 400% 400%;
             animation: gradient 15s ease infinite;
-            height: 100vh;
             font-family: 'Space Grotesk', sans-serif;
         }
 
@@ -22,7 +20,6 @@ st.markdown("""
             100% { background-position: 0% 50%; }
         }
 
-        /* Titre holographique */
         .big-title {
             font-size: 4.5rem;
             font-weight: 700;
@@ -63,8 +60,7 @@ st.markdown("""
             position: relative;
         }
 
-        /* Bouton principal centré */
-        .launch-button {
+        .stButton>button {
             font-size: 1.2rem;
             padding: 1rem 3.5rem;
             border-radius: 12px;
@@ -76,23 +72,25 @@ st.markdown("""
             transition: all 0.4s ease;
         }
 
-        .launch-button:hover {
+        .stButton>button:hover {
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 8px 30px rgba(0, 230, 118, 0.5);
+        }
+
+        /* Centrage global des boutons */
+        div.stButton {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# ---------- UI améliorée ----------
+# ---------- UI ----------
 st.markdown('<div class="big-title">Transform Data<br>Into Vision</div>', unsafe_allow_html=True)
 st.markdown('<div class="logo">DATALIVE.AI</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">AI-Powered Insights • Natural Language Queries<br>Auto-Visualization Engine</div>', unsafe_allow_html=True)
 
-# ---------- Bouton centré ----------
-st.markdown("""
-<div style="display: flex; justify-content: center; margin-top: 2rem;">
-    <form action="pages/data_import.py">
-        <button class="launch-button" type="submit"> LAUNCH ANALYTICS</button>
-    </form>
-</div>
-""", unsafe_allow_html=True)
+# ---------- Bouton centré et stylé ----------
+if st.button("🚀 LAUNCH ANALYTICS", key="launch_btn"):
+    st.switch_page("pages/data_import.py")
