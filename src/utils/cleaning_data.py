@@ -1,17 +1,18 @@
-import pandas as pd 
+import pandas as pd
 from sklearn.impute import KNNImputer
+import pyarrow as pa
+
+def enforce_arrow_compatibility(df: pd.DataFrame) -> pd.DataFrame:
+    """Ensures the DataFrame can be serialized by PyArrow (used by Streamlit)."""
+    for col in df.columns:
+        try:
+            _ = pa.array(df[col])
+        except (pa.ArrowInvalid, pa.ArrowTypeError):
+            df[col] = df[col].astype(str)
+    return df
+
 
 def data_cleaning_remove(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Removes all rows that contain at least one NaN or None value.
-    Prints the shape before and after cleaning.
-
-    Parameters:
-        df (pd.DataFrame): The original dataset
-
-    Returns:
-        pd.DataFrame: A cleaned dataset
-    """
     original_shape = df.shape
     cleaned_df = df.dropna()
     cleaned_shape = cleaned_df.shape
@@ -21,32 +22,35 @@ def data_cleaning_remove(df: pd.DataFrame) -> pd.DataFrame:
     print(f"After cleaning: {cleaned_shape[0]} rows × {cleaned_shape[1]} columns")
     print(f"Rows removed: {rows_removed}")
 
-    return cleaned_df
+    return enforce_arrow_compatibility(cleaned_df)
 
 
 def data_cleaning_fill(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Fills missing values in the DataFrame:
-    - Numerical columns: filled with the mean
-    - Object (string) columns: filled with 'Unknown'
-    Prints shape and number of filled values.
-
-    Parameters:
-        df (pd.DataFrame): The original dataset
-
-    Returns:
-        pd.DataFrame: A cleaned dataset with missing values filled
-    """
     cleaned_df = df.copy()
     total_missing_before = cleaned_df.isnull().sum().sum()
     original_shape = cleaned_df.shape
 
     for col in cleaned_df.columns:
         if cleaned_df[col].isnull().any():
-            if cleaned_df[col].dtype == "object":
-                cleaned_df[col].fillna("Unknown", inplace=True)
-            else:
-                cleaned_df[col].fillna(cleaned_df[col].mean(), inplace=True)
+            dtype = cleaned_df[col].dtype
+
+            if pd.api.types.is_numeric_dtype(dtype):
+                cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].mean())
+
+            elif pd.api.types.is_bool_dtype(dtype):
+                cleaned_df[col] = cleaned_df[col].fillna(False)
+
+            elif pd.api.types.is_datetime64_any_dtype(dtype):
+                try:
+                    fallback = cleaned_df[col].min()
+                    if pd.isnull(fallback):
+                        fallback = pd.Timestamp("2000-01-01")
+                    cleaned_df[col] = cleaned_df[col].fillna(fallback)
+                except Exception:
+                    cleaned_df[col] = cleaned_df[col].fillna(pd.Timestamp("2000-01-01"))
+
+            else:  # object or mixed
+                cleaned_df[col] = cleaned_df[col].fillna("Unknown")
 
     total_missing_after = cleaned_df.isnull().sum().sum()
     filled_values = total_missing_before - total_missing_after
@@ -54,34 +58,32 @@ def data_cleaning_fill(df: pd.DataFrame) -> pd.DataFrame:
     print(f"Original shape: {original_shape[0]} rows × {original_shape[1]} columns")
     print(f"Missing values filled: {filled_values}")
 
-    return cleaned_df
+    return enforce_arrow_compatibility(cleaned_df)
 
 
 def data_cleaning_knn(df: pd.DataFrame, n_neighbors: int = 5) -> pd.DataFrame:
-    """
-    Fills missing values in the DataFrame:
-    - Numerical columns: filled using KNN imputation
-    - Object (string) columns: filled with 'Unknown'
-    Prints shape and number of filled values.
-
-    Parameters:
-        df (pd.DataFrame): The original dataset
-        n_neighbors (int): Number of neighbors for KNNImputer
-
-    Returns:
-        pd.DataFrame: A cleaned dataset with missing values filled
-    """
     cleaned_df = df.copy()
     original_shape = cleaned_df.shape
     total_missing_before = cleaned_df.isnull().sum().sum()
 
-    # 1. Handle categorical columns
-    object_cols = cleaned_df.select_dtypes(include="object").columns
-    for col in object_cols:
+    # Fill non-numeric columns intelligently
+    for col in cleaned_df.columns:
         if cleaned_df[col].isnull().any():
-            cleaned_df[col].fillna("Unknown", inplace=True)
+            dtype = cleaned_df[col].dtype
 
-    # 2. Handle numerical columns with KNN
+            if pd.api.types.is_bool_dtype(dtype):
+                cleaned_df[col] = cleaned_df[col].fillna(False)
+
+            elif pd.api.types.is_datetime64_any_dtype(dtype):
+                fallback = cleaned_df[col].min()
+                if pd.isnull(fallback):
+                    fallback = pd.Timestamp("2000-01-01")
+                cleaned_df[col] = cleaned_df[col].fillna(fallback)
+
+            elif pd.api.types.is_object_dtype(dtype):
+                cleaned_df[col] = cleaned_df[col].fillna("Unknown")
+
+    # Apply KNN only to numeric cols
     num_cols = cleaned_df.select_dtypes(include=["number"]).columns
     if not num_cols.empty:
         imputer = KNNImputer(n_neighbors=n_neighbors)
@@ -93,4 +95,4 @@ def data_cleaning_knn(df: pd.DataFrame, n_neighbors: int = 5) -> pd.DataFrame:
     print(f"Original shape: {original_shape[0]} rows × {original_shape[1]} columns")
     print(f"Missing values filled: {filled_values}")
 
-    return cleaned_df
+    return enforce_arrow_compatibility(cleaned_df)
