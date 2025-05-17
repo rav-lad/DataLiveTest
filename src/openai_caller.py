@@ -1,6 +1,6 @@
 import openai
 import runpy
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import pandas as pd
@@ -40,7 +40,7 @@ def write_code_to_file(code: str, filename: str = FILENAME) -> None:
     except Exception as e:
         print(f"[✘] Failed to write code to file: {e}")
 
-def create_prompt(metadata: str, user_request: str,context:str) -> str:
+def create_prompt(metadata: str, user_request: str) -> str:
     """
     Returns the initial prompt for the GPT model based on dataset metadata and user request.
     """
@@ -50,32 +50,46 @@ def create_prompt(metadata: str, user_request: str,context:str) -> str:
         Start of dataset description \n
         {metadata}
         End of dataset description \n
-        Following is the list of your precedent conversation with the user, if it's empty it's the start of the conversation
-        else use it to answer adequatly to the user.
-        Start of context\n
-        {context}
-        End of context\n
         The user asked: "{user_request}"
 
         Please write valid Python code to fulfill the user's request using pandas and matplotlib or seaborn.
         Do not include explanations. Only return the code.
         """
 
-
-
-def get_python_code_from_gpt(metadata: str, user_request: str,context:str) -> tuple[str,str]:
+def get_python_code_from_gpt(metadata: str, user_request: str,messages: List[Dict[str, str]]
+) -> Tuple[str, List[Dict[str, str]]]:
     # build the prompt  
 
 
-    prompt = create_prompt(metadata=metadata,user_request=user_request,context=context)
+    # handle first request case
+    if not messages:
+        # 1. Add system message
+        messages.append({
+            "role": "system",
+            "content": (
+                "You are a helpful Python coding assistant. Only return valid Python code "
+                "using pandas, matplotlib, or seaborn. Do not explain your answers. "
+                "Assume the DataFrame is already loaded as `df`."
+            )
+        })
 
-    context += prompt 
+        #create first user message with metadata
+        first_prompt = create_prompt(metadata, user_request)
+        messages.append({"role": "user", "content": first_prompt})
+
+    else:
+        user_message = (f"The user asked: \"{user_request}\"\n"
+            "Please write valid Python code to fulfill the user's request using pandas and matplotlib or seaborn. "
+            "Do not include explanations. Only return the code.")
+    
+        messages.append({"role": "user", "content": user_message})
+
     
     # call the api 
     try: 
         response = client.chat.completions.create(
             model= "gpt-4o-mini",
-            messages = [{"role":"user","content":prompt}],
+            messages = messages,
             temperature=0.2
         )
 
@@ -83,8 +97,10 @@ def get_python_code_from_gpt(metadata: str, user_request: str,context:str) -> tu
         raw_response = response.choices[0].message.content
         clean_code = sanitize_code(raw_response)
 
-        # Append Clean code to context 
-        context += f"Your answer : {clean_code}"
+        # append the assistant's response to the messages
+        messages.append({"role": "assistant", "content": clean_code})
+        
+        # write the code to a file
         write_code_to_file(clean_code)
 
         return clean_code,context
