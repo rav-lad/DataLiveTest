@@ -51,13 +51,43 @@ csv = st.file_uploader("Upload your CSV file", type="csv")
 
 if csv is not None:
     try:
-        df = pd.read_csv(csv)
+        st.session_state.df_uploaded = False
+        st.session_state.df = None
+
+        # 1. Lecture du CSV
+        df = pd.read_csv(csv, low_memory=False)
+
+        # 2. Nettoyage défensif : remplacer tout objet de type Python (int, float...) par None
+        for col in df.columns:
+            df[col] = df[col].apply(lambda x: None if isinstance(x, type) else x)
+
+        # 3. Conversion automatique des types (pandas >= 1.0)
+        df = df.convert_dtypes()
+
+        # 4. Cast explicite des colonnes numériques (pour éviter str ou objets ambigus)
+        for col in df.select_dtypes(include="number").columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        # 5. Traitement des colonnes object (conversion en string propre sauf ID)
+        for col in df.columns:
+            if df[col].dtype == "object" and "id" not in col.lower() and "index" not in col.lower():
+                unique_types = df[col].apply(type).unique()
+                if all(t in [str, type(None)] for t in unique_types):
+                    df[col] = df[col].astype("string")
+
+        # 6. Optionnel : forcer PassengerId à être Int64 Arrow-compatible
+        if "PassengerId" in df.columns:
+            df["PassengerId"] = pd.to_numeric(df["PassengerId"], errors="coerce").astype("Int64")
+
+        # 7. Sauvegarde dans session_state
         st.session_state.df = df
         st.session_state.df_uploaded = True
         st.success("✅ File uploaded successfully!")
+
     except Exception as e:
         st.error(f"❌ Error reading file: {e}")
 
+# ---------- Navigation ----------
 if st.session_state.df_uploaded:
     if st.button("Continue to Data info"):
         st.switch_page("pages/data_info.py")

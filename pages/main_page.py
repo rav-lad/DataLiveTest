@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import io
 from openai import OpenAI
 from src.openai_caller import run_code_with_df, get_python_code_from_gpt
-from src.utils.data_info import summarize_dataset
+from src.utils.data_info_function import summarize_dataset
 from src.model.ui_utils import display_graph
 
 openai_api_key = "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"

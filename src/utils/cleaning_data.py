@@ -1,98 +1,67 @@
 import pandas as pd
+import numpy as np
 from sklearn.impute import KNNImputer
-import pyarrow as pa
+from pandas.api.types import (
+    is_bool_dtype,
+    is_numeric_dtype,
+    is_datetime64_any_dtype,
+)
 
-def enforce_arrow_compatibility(df: pd.DataFrame) -> pd.DataFrame:
-    """Ensures the DataFrame can be serialized by PyArrow (used by Streamlit)."""
-    for col in df.columns:
-        try:
-            _ = pa.array(df[col])
-        except (pa.ArrowInvalid, pa.ArrowTypeError):
-            df[col] = df[col].astype(str)
-    return df
+# 1. Détection des colonnes d'identifiants
+def is_identifier(col_name):
+    return col_name.lower().endswith("id") or col_name.lower() == "index"
 
+def split_identifiers(df):
+    id_cols = [col for col in df.columns if is_identifier(col)]
+    return df.drop(columns=id_cols), df[id_cols]
 
+def rejoin(df_core, df_ids):
+    return pd.concat([df_ids.reset_index(drop=True), df_core.reset_index(drop=True)], axis=1)
+
+# 2. Imputation simple
+def handle_missing(col):
+    if col.isna().sum() == 0:
+        return col
+
+    if is_bool_dtype(col):
+        return col.fillna(col.mode().iloc[0]).astype(bool)
+
+    if is_numeric_dtype(col):
+        if pd.api.types.is_integer_dtype(col):
+            return col.fillna(int(col.mean())).astype(col.dtype)
+        return col.fillna(col.mean()).astype(col.dtype)
+
+    if is_datetime64_any_dtype(col):
+        return col.fillna(col.min() or pd.Timestamp("2000-01-01"))
+
+    return col.fillna(col.mode().iloc[0] if not col.mode().empty else "Unknown")
+
+# 3. Méthodes de cleaning
 def data_cleaning_remove(df: pd.DataFrame) -> pd.DataFrame:
-    original_shape = df.shape
-    cleaned_df = df.dropna()
-    cleaned_shape = cleaned_df.shape
-    rows_removed = original_shape[0] - cleaned_shape[0]
-
-    print(f"Original shape: {original_shape[0]} rows × {original_shape[1]} columns")
-    print(f"After cleaning: {cleaned_shape[0]} rows × {cleaned_shape[1]} columns")
-    print(f"Rows removed: {rows_removed}")
-
-    return enforce_arrow_compatibility(cleaned_df)
-
+    df_core, df_ids = split_identifiers(df)
+    cleaned = df_core.dropna()
+    return rejoin(cleaned, df_ids.loc[cleaned.index])
 
 def data_cleaning_fill(df: pd.DataFrame) -> pd.DataFrame:
-    cleaned_df = df.copy()
-    total_missing_before = cleaned_df.isnull().sum().sum()
-    original_shape = cleaned_df.shape
+    df_core, df_ids = split_identifiers(df)
+    filled = df_core.apply(handle_missing)
+    return rejoin(filled, df_ids)
 
-    for col in cleaned_df.columns:
-        if cleaned_df[col].isnull().any():
-            dtype = cleaned_df[col].dtype
+def data_cleaning_knn(df: pd.DataFrame, n_neighbors=5) -> pd.DataFrame:
+    df_core, df_ids = split_identifiers(df)
 
-            if pd.api.types.is_numeric_dtype(dtype):
-                cleaned_df[col] = cleaned_df[col].fillna(cleaned_df[col].mean())
+    # 1. Non numériques
+    non_num = df_core.select_dtypes(exclude=np.number).columns
+    df_core[non_num] = df_core[non_num].apply(handle_missing)
 
-            elif pd.api.types.is_bool_dtype(dtype):
-                cleaned_df[col] = cleaned_df[col].fillna(False)
-
-            elif pd.api.types.is_datetime64_any_dtype(dtype):
-                try:
-                    fallback = cleaned_df[col].min()
-                    if pd.isnull(fallback):
-                        fallback = pd.Timestamp("2000-01-01")
-                    cleaned_df[col] = cleaned_df[col].fillna(fallback)
-                except Exception:
-                    cleaned_df[col] = cleaned_df[col].fillna(pd.Timestamp("2000-01-01"))
-
-            else:  # object or mixed
-                cleaned_df[col] = cleaned_df[col].fillna("Unknown")
-
-    total_missing_after = cleaned_df.isnull().sum().sum()
-    filled_values = total_missing_before - total_missing_after
-
-    print(f"Original shape: {original_shape[0]} rows × {original_shape[1]} columns")
-    print(f"Missing values filled: {filled_values}")
-
-    return enforce_arrow_compatibility(cleaned_df)
-
-
-def data_cleaning_knn(df: pd.DataFrame, n_neighbors: int = 5) -> pd.DataFrame:
-    cleaned_df = df.copy()
-    original_shape = cleaned_df.shape
-    total_missing_before = cleaned_df.isnull().sum().sum()
-
-    # Fill non-numeric columns intelligently
-    for col in cleaned_df.columns:
-        if cleaned_df[col].isnull().any():
-            dtype = cleaned_df[col].dtype
-
-            if pd.api.types.is_bool_dtype(dtype):
-                cleaned_df[col] = cleaned_df[col].fillna(False)
-
-            elif pd.api.types.is_datetime64_any_dtype(dtype):
-                fallback = cleaned_df[col].min()
-                if pd.isnull(fallback):
-                    fallback = pd.Timestamp("2000-01-01")
-                cleaned_df[col] = cleaned_df[col].fillna(fallback)
-
-            elif pd.api.types.is_object_dtype(dtype):
-                cleaned_df[col] = cleaned_df[col].fillna("Unknown")
-
-    # Apply KNN only to numeric cols
-    num_cols = cleaned_df.select_dtypes(include=["number"]).columns
-    if not num_cols.empty:
+    # 2. KNN sur numériques
+    num = df_core.select_dtypes(include=np.number).columns
+    if len(num):
         imputer = KNNImputer(n_neighbors=n_neighbors)
-        cleaned_df[num_cols] = imputer.fit_transform(cleaned_df[num_cols])
+        df_core[num] = imputer.fit_transform(df_core[num])
 
-    total_missing_after = cleaned_df.isnull().sum().sum()
-    filled_values = total_missing_before - total_missing_after
+        for col in num:
+            if pd.api.types.is_integer_dtype(df[col]):
+                df_core[col] = df_core[col].round().astype(df[col].dtype)
 
-    print(f"Original shape: {original_shape[0]} rows × {original_shape[1]} columns")
-    print(f"Missing values filled: {filled_values}")
-
-    return enforce_arrow_compatibility(cleaned_df)
+    return rejoin(df_core, df_ids)
