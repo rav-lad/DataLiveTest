@@ -68,12 +68,7 @@ def analyze_video_chart(output_path: str) -> str:
    - Key Relationships: Highlight correlations/trends with metrics (RÂ², CI)
    - Hypotheses: Generate 2-3 testable hypotheses
 
-3. **Business Implications**:
-   - Actionable Takeaways: Link to business decisions
-   - Benchmarking: Compare against industry standards
-   - Risks/Opportunities: Flag limitations or opportunities
-
-4. **Next Steps**:
+5. **Next Steps**:
    - Data Adjustments: Specific fixes (imputation, filtering)
    - Advanced Analysis: Suggest models (ARIMA, SHAP)
    - Visualization Improvements: Propose alternatives
@@ -118,7 +113,7 @@ def analyse_plot(fig):
 
     print(f"Plot saved to: {PATH}")
 
-    _ = image_to_video(PATH,OUTPATH)
+    _ = image_to_video(PATH,OUTPATH,repeat=1)
     analysis = analyze_video_chart(OUTPATH)
     print(f"{analysis}")
     return analysis

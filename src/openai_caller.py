@@ -84,13 +84,13 @@ def get_python_code_from_gpt(metadata: str, user_request: str,messages: List[Dic
     - The libraries `pd`, `plt`, and `sns` are already imported
     - Do NOT include import statements
     - Do NOT use `df = pd.read_csv(...)`
-    - Do include `plt.show()` 
-
-    Your responsibilities:
+    - Do ALWAYS include `fig` at the end
+    - When plotting a correlation heatmap, use df.corr(numeric_only=True) to avoid errors from non-numeric columns. Always plot with fig, ax = plt.subplots(), draw with ax=, and return fig as the last line.
     - Preprocess the DataFrame if needed (e.g., filtering, grouping, creating new columns)
     - Visualize the data according to the user request
     - Create professional, well-labeled plots (title, axis labels, color, font sizes)
     - Use consistent styling (e.g., figsize=(10, 6), clean color palettes, rotated ticks)
+
 
     Only return valid Python code. Do not include explanations or comments.
 
@@ -100,17 +100,21 @@ def get_python_code_from_gpt(metadata: str, user_request: str,messages: List[Dic
     # Data preprocessing
     df['new_col'] = ...
 
+    # correlation for numerical feature only
+    correlation_matrix = df.corr(numeric_only=True)
+    
     # Aggregation
     grouped = df.groupby(...).agg(...)
 
     # Plotting
-    plt.figure(figsize=(10, 6))
-    sns.barplot(x=..., y=..., data=...)
+    fig,ax = plt.figure(figsize=(10, 6))
+    sns.heatmap(x=..., y=..., data=...,ax=axe)
     plt.title("Your Title", fontsize=16)
     plt.xlabel("X Axis", fontsize=14)
     plt.ylabel("Y Axis", fontsize=14)
     plt.xticks(rotation=45)
     plt.tight_layout()
+    fig
     ```
     """
 
@@ -139,7 +143,7 @@ def get_python_code_from_gpt(metadata: str, user_request: str,messages: List[Dic
     # call the api 
     try: 
         response = client.chat.completions.create(
-            model= "gpt-4o-mini",
+            model= "gpt-4o",
             messages = messages,
             temperature=0.2
         )
