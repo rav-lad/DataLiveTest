@@ -5,7 +5,7 @@ st.set_page_config(page_title="DataLive.AI – Launchpad", layout="centered")
 
 
 
-# 3) Ton CSS global habituel + contenu Streamlit
+#Global CSS
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
