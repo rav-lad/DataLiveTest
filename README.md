@@ -160,7 +160,7 @@ Here are some exciting features planned for the next iteration:
 
 ## Team
 
-Built with Ylan Vifian , Youcef Amar and Arno Vifian .
+Built by Ylan Vifian , Youcef Amar and Arno Vifian .
 
 ---
 
