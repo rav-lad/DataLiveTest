@@ -1,5 +1,50 @@
 
+<h1 align="center">
+  <br>
+  <img src="![image](https://github.com/user-attachments/assets/dedb44b1-8cba-418b-97a8-0b63f6c0e187)" width="200">
+  <br>
+</h1>
 
+<h4 align="center">Your local AI assistant for interactive, multimodal data exploration</h4>
+
+<p align="center">
+  🏆 <strong>1st Place — GenAI APIs Track</strong><br>
+  <em>LauzHack Mini-Hackathon 2025</em><br>
+  Organized by <a href="https://www.epfl.ch/labs/">@EPFL AI Team</a> and <a href="https://www.lauzhack.com/">@LauzHack</a>
+</p>
+
+<p align="center">
+  <a href="https://streamlit.io">
+    <img src="https://img.shields.io/badge/Frontend-Streamlit-ff4b4b?logo=streamlit&logoColor=white">
+  </a>
+  <a href="https://openai.com/api/">
+    <img src="https://img.shields.io/badge/API-OpenAI GPT--4o-blue?logo=openai">
+  </a>
+  <a href="https://huggingface.co" target="_blank">
+    <img src="https://img.shields.io/badge/API-HuggingFace-yellow.svg?logo=huggingface&logoColor=white" alt="Hugging Face">
+  </a>
+  <a href="https://www.python.org">
+    <img src="https://img.shields.io/badge/Python-3.10-blue.svg?logo=python&logoColor=white">
+  </a>
+  <a href="https://github.com/psf/black">
+    <img src="https://img.shields.io/badge/code%20style-black-000000.svg">
+  </a>
+</p>
+
+<p align="center">
+  <a href="#overview">Overview</a> •
+  <a href="#features">Why It's Different from ChatGPT</a> •
+  <a href="#features">Features</a> •
+  <a href="#features">Tech Stack</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#future-work">Future Work</a> •
+  <a href="#team">Team</a>
+</p>
+
+> 🎥 **Demo**: *Coming soon — the demo video will be added here once it's ready!*
+
+---
 ---
 
 # DataLive.ai 🧠📊
