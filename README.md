@@ -1,7 +1,7 @@
 
 <h1 align="center">
   <br>
-  <img src="![image](https://github.com/user-attachments/assets/dedb44b1-8cba-418b-97a8-0b63f6c0e187)" width="200">
+  <img src="https://github.com/Ylanv/DataLive/blob/main/DataLiveLogo.png" width="200">
   <br>
 </h1>
 
@@ -10,7 +10,7 @@
 <p align="center">
   🏆 <strong>1st Place — GenAI APIs Track</strong><br>
   <em>LauzHack Mini-Hackathon 2025</em><br>
-  Organized by <a href="https://www.epfl.ch/labs/">@EPFL AI Team</a> and <a href="https://www.lauzhack.com/">@LauzHack</a>
+  Organized by <a href="https://epflaiteam.ch/home/">@EPFL AI Team</a> and <a href="https://www.lauzhack.com/">@LauzHack</a>
 </p>
 
 <p align="center">
@@ -48,9 +48,6 @@
 ---
 
 # DataLive.ai 🧠📊
-
-**🏆 1st Place Winner – LauzHack Mini Hackathon (GenAI Track)**
-Organized by **LauzHack** and the **EPFL AI Team**
 
 ## Overview
 
