@@ -26,9 +26,6 @@
   <a href="https://www.python.org">
     <img src="https://img.shields.io/badge/Python-3.10-blue.svg?logo=python&logoColor=white">
   </a>
-  <a href="https://github.com/psf/black">
-    <img src="https://img.shields.io/badge/code%20style-black-000000.svg">
-  </a>
 </p>
 
 <p align="center">
