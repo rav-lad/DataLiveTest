@@ -1,7 +1,7 @@
 
 <h1 align="center">
   <br>
-  <img src="https://github.com/Ylanv/DataLive/blob/main/DataLiveLogo.png" width="200">
+  <img src="https://github.com/Ylanv/DataLive/blob/main/DataLiveLogo.png" width="400">
   <br>
 </h1>
 
