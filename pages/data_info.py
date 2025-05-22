@@ -9,7 +9,7 @@ from src.utils.cleaning_data import (
     data_cleaning_remove,
     data_cleaning_knn,
 )
-
+import pandas as pd 
 # ---------- Page config ----------
 st.set_page_config(page_title="Clean your data", layout="centered")
 
@@ -112,17 +112,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- Vérification de la présence du dataset ----------
+# ---------- Checking for dataset presence ----------
 if "df" not in st.session_state or st.session_state.df is None:
     st.error("No dataset loaded. Please import your data first.")
     st.stop()
 
-# ---------- Contenu principal ----------
+# ---------- Main content----------
 df = st.session_state.df.copy()
 
-# Titre principal
 st.markdown('<div class="big-title">Dataset Preparation</div>', unsafe_allow_html=True)
-# Sous-titre
 st.markdown('<div class="subtitle">Prepare and clean your dataset seamlessly</div>', unsafe_allow_html=True)
 
 # Section Sample
@@ -140,6 +138,50 @@ with st.container():
         st.dataframe(get_shape_dataframe(df))
     with tab3:
         st.pyplot(fig=plot_missing_values(df))
+
+
+# --- Special Data ---
+special_data = st.session_state.get("special_data", {})
+special_types_detected = {
+    "embedding": [],
+    "image": [],
+    "graph": []
+}
+
+for kind in special_types_detected:
+    if kind in special_data:
+        for col, df in special_data[kind].items():
+            if isinstance(df, pd.DataFrame) and not df.empty:
+                special_types_detected[kind].append(col)
+
+has_special = any(special_types_detected.values())
+
+if has_special:
+    with st.expander("🔍 Special data detected", expanded=True):
+        st.markdown("### 🎯 Detected types :")
+
+        if special_types_detected["embedding"]:
+            st.markdown(f"- **Embeddings** : {', '.join(special_types_detected['embedding'])}")
+        if special_types_detected["image"]:
+            st.markdown(f"- **Images** : {', '.join(special_types_detected['image'])}")
+        if special_types_detected["graph"]:
+            st.markdown(f"- **Graphes** : {', '.join(special_types_detected['graph'])}")
+
+        st.info("Would you like to explore these data types in more depth?")
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if special_types_detected["embedding"] and st.button("🔎 Explore Embeddings"):
+                st.session_state.special_explore_type = "embedding"
+                st.switch_page("pages/explore_special.py")
+        with col2:
+            if special_types_detected["image"] and st.button("🖼️ Explore Images"):
+                st.session_state.special_explore_type = "image"
+                st.switch_page("pages/explore_special.py")
+        with col3:
+            if special_types_detected["graph"] and st.button("🕸️ Explore Graphes"):
+                st.session_state.special_explore_type = "graph"
+                st.switch_page("pages/explore_special.py")
 
 # Cleaning Options
 with st.container():
@@ -176,7 +218,10 @@ with col2:
                 elif "KNN" in method:
                     df = data_cleaning_knn(df, n_neighbors=n_neighbors)
 
-                st.session_state.df = df
+                if "column" in df.columns and "value" in df.columns and df.shape[1] <= 4:
+                    st.warning("⚠️ Tentative d’écrasement de df avec un tableau spécial ignorée.")
+                else:
+                    st.session_state.df = df
                 status.update(label="Processing complete!", state="complete", expanded=False)
                 st.switch_page("pages/main_page.py")
             except Exception as e:

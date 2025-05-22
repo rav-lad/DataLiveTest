@@ -44,8 +44,19 @@ def data_cleaning_remove(df: pd.DataFrame) -> pd.DataFrame:
 
 def data_cleaning_fill(df: pd.DataFrame) -> pd.DataFrame:
     df_core, df_ids = split_identifiers(df)
+
+    # Conversion explicite des colonnes object → numérique si possible
+    for col in df_core.columns:
+        # Si la colonne est de type object mais contient des chiffres, on la convertit
+        if df_core[col].dtype == object:
+            coerced = pd.to_numeric(df_core[col], errors='coerce')
+            if coerced.notna().sum() > 0:
+                df_core[col] = coerced
+
+    # Ensuite on applique ton handle_missing sur chaque colonne
     filled = df_core.apply(handle_missing)
     return rejoin(filled, df_ids)
+
 
 def data_cleaning_knn(df: pd.DataFrame, n_neighbors=5) -> pd.DataFrame:
     df_core, df_ids = split_identifiers(df)

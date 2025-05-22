@@ -8,7 +8,7 @@ from typing import List
 import seaborn as sns
 import os
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = ""
 client= openai.OpenAI(api_key= openai_api_key)
 
 FILENAME = "src/generated_script.py"
